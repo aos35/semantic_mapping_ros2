@@ -1,0 +1,33 @@
+# Parámetros de los nodos del paquete semantic_mapping.
+cloud_projector:
+  ros__parameters:
+    cameras: [cam0, cam1, cam2]
+    lidar_topic: /hesai/pandar
+    image_topic_suffix: /debayered/image/compressed
+    label_topic_template: /semantic_mapping/{cam}/labels
+    max_time_diff: 0.08     # s, desfase máx. LiDAR-imagen/etiqueta (etiquetas a 10 Hz por cámara)
+    label_wait: 0.8         # s, espera máx. a la segmentación
+    min_depth: 0.5          # m, en el frame de la cámara
+    max_range: 60.0         # m
+    drop_unseen: true       # descartar puntos fuera del campo de visión de las cámaras
+    image_decode_reduce: 2  # decodificar JPEG a 720x540 (más rápido)
+
+segmentation_node:
+  ros__parameters:
+    cameras: [cam0, cam1, cam2]
+    image_topic_template: /alphasense_driver_ros/{cam}/debayered/image/compressed
+    device: cuda
+    decode_reduce: 2        # JPEG decodificado directamente a 720x540; etiquetas a esa resolución
+    scale: 1.0              # escala adicional antes de inferir (segformer)
+    max_rate_hz: 10.0       # por cámara (= frecuencia del LiDAR)
+    publish_viz: true
+
+semantic_mapper:
+  ros__parameters:
+    map_frame: odom
+    voxel_size: 0.15
+    exclude_labels: [10, 11, 12]   # sky, person, rider
+    color_mode: semantic           # semantic | rgb
+    publish_period: 3.0
+    min_hits: 2
+    output_dir: /home/developer/output

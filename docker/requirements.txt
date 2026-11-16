@@ -1,0 +1,13 @@
+# Dependencias Python de inferencia (GPU, CUDA 12.8).
+# CUDA 12.8 + torch>=2.7 son necesarios para GPUs Blackwell (RTX 50xx, sm_120).
+# numpy<2: ROS 2 Jazzy (Ubuntu 24.04) está compilado contra numpy 1.26.
+# setuptools fijado a la versión de Ubuntu 24.04 para no romper colcon/ament_python.
+--extra-index-url https://download.pytorch.org/whl/cu128
+torch==2.7.1
+torchvision==0.22.1
+numpy<2
+setuptools==68.1.2
+transformers>=4.44,<5
+ultralytics>=8.3,<9
+opencv-python<4.11
+opencv-python-headless<4.11

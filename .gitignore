@@ -1,0 +1,22 @@
+# Datos y resultados (el bag ocupa ~11 GB)
+*.db3
+*.mcap
+data/
+output*/
+*.ply
+*.pcd
+*.pt
+# ROS / Python
+build/
+install/
+log/
+__pycache__/
+*.pyc
+.pytest_cache/
+# Windows
+*:Zone.Identifier
+# LaTeX
+*.aux
+*.log
+*.out
+*.synctex.gz

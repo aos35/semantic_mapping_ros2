@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  Fast DDS: transporte por memoria compartida con segmentos grandes.
+  Cada nube del Hesai ocupa ~2,9 MB. Con el segmento por defecto (512 KB) Fast DDS
+  la manda por UDP fragmentada y, dentro de Docker, se pierden fragmentos:
+  rko_lio solo recibía 1 de cada 10-60 scans y el ICP acababa fallando.
+-->
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+  <transport_descriptors>
+    <transport_descriptor>
+      <transport_id>shm_large</transport_id>
+      <type>SHM</type>
+      <segment_size>67108864</segment_size>   <!-- 64 MB -->
+      <port_queue_capacity>1024</port_queue_capacity>
+    </transport_descriptor>
+    <transport_descriptor>
+      <transport_id>udp</transport_id>
+      <type>UDPv4</type>
+    </transport_descriptor>
+  </transport_descriptors>
+  <participant profile_name="shm_participant" is_default_profile="true">
+    <rtps>
+      <userTransports>
+        <transport_id>shm_large</transport_id>
+        <transport_id>udp</transport_id>
+      </userTransports>
+      <useBuiltinTransports>false</useBuiltinTransports>
+    </rtps>
+  </participant>
+</profiles>

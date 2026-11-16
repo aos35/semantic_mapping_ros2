@@ -1,0 +1,99 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Reference Frame: odom
+      Plane Cell Count: 100
+      Cell Size: 5
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: true
+      Show Names: true
+      Marker Scale: 2
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Mapa semantico
+      Enabled: true
+      Topic:
+        Value: /semantic_mapping/map
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+      Color Transformer: RGB8
+      Style: Points
+      Size (Pixels): 2
+      Decay Time: 0
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Scan actual coloreado
+      Enabled: true
+      Topic:
+        Value: /semantic_mapping/cloud
+        Depth: 5
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+      Color Transformer: RGB8
+      Style: Points
+      Size (Pixels): 3
+      Decay Time: 0
+    - Class: rviz_default_plugins/Odometry
+      Name: Trayectoria rko_lio
+      Enabled: true
+      Topic:
+        Value: /rko_lio/odom
+        Depth: 5
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+      Keep: 3000
+      Shape:
+        Value: Axes
+        Axes Length: 0.5
+        Axes Radius: 0.05
+    - Class: rviz_default_plugins/Image
+      Name: cam1 (izquierda)
+      Enabled: true
+      Topic:
+        Value: /semantic_mapping/cam1/labels_viz
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+    - Class: rviz_default_plugins/Image
+      Name: cam0 (frontal)
+      Enabled: true
+      Topic:
+        Value: /semantic_mapping/cam0/labels_viz
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+    - Class: rviz_default_plugins/Image
+      Name: cam2 (derecha)
+      Enabled: true
+      Topic:
+        Value: /semantic_mapping/cam2/labels_viz
+        Depth: 1
+        Reliability Policy: Reliable
+        Durability Policy: Volatile
+  Global Options:
+    Fixed Frame: odom
+    Background Color: 30; 30; 30
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 60
+      Pitch: 0.8
+      Yaw: 0.8
+      Target Frame: pandar
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+Window Geometry:
+  Width: 1600
+  Height: 950

@@ -1,0 +1,22 @@
+# Configuración de rko_lio para el Oxford Spires Dataset.
+#
+# IMPORTANTE: el launch de rko_lio solo lee sus parámetros de la línea de
+# comandos o de este fichero (config_file); ignora los launch_arguments que le
+# pasa otro launch. Por eso todo va aquí.
+#
+# Extrínsecos tomados de la configuración oficial de rko_lio (config/oxford_spires.yaml,
+# https://github.com/PRBonn/rko_lio). El LiDAR (frame 'pandar') se usa como base,
+# por eso lidar2base es la identidad. El bag no trae /tf, así que son obligatorios.
+# Formato: [qx, qy, qz, qw, x, y, z]
+
+imu_topic: /alphasense_driver_ros/imu
+lidar_topic: /hesai/pandar
+imu_frame: imu_sensor_frame      # frame_id de los mensajes IMU del bag
+lidar_frame: pandar              # frame_id de los mensajes LiDAR del bag
+base_frame: pandar
+odom_frame: odom
+use_sim_time: true               # el bag se reproduce con --clock
+
+extrinsic_imu2base_quat_xyzw_xyz: [0.00260242, -0.000189964, 0.714824, -0.6993, 0.00151982, -0.0046825, -0.0775784]
+extrinsic_lidar2base_quat_xyzw_xyz: [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+initialization_phase: false

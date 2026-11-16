@@ -1,0 +1,31 @@
+services:
+  semantic_mapping:
+    build:
+      context: docker
+      dockerfile: Dockerfile
+    image: ri-semantic-mapping
+    network_mode: host
+    ipc: host
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-/tmp}
+      - PULSE_SERVER=${PULSE_SERVER:-}
+      - QT_X11_NO_MITSHM=1
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
+      # Memoria compartida con segmentos grandes para las nubes de 2,9 MB
+      - FASTRTPS_DEFAULT_PROFILES_FILE=/home/developer/ros2_ws/src/semantic_mapping_ros2/docker/fastdds_shm.xml
+      - FASTDDS_DEFAULT_PROFILES_FILE=/home/developer/ros2_ws/src/semantic_mapping_ros2/docker/fastdds_shm.xml
+    volumes:
+      - .:/home/developer/ros2_ws/src/semantic_mapping_ros2:ro
+      - ${BAG_DIR:-../1710255615_2024-03-12-15-00-16}:/data/bag:ro
+      - ./output:/home/developer/output
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /mnt/wslg:/mnt/wslg          # WSLg (Windows); en Linux nativo se ignora
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
