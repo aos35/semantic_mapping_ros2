@@ -1,163 +1,154 @@
-\documentclass[11pt,a4paper]{article}
+\documentclass[11pt, twoside]{article}
 
-\usepackage[utf8]{inputenc}
+\usepackage{acl}
+\setlength{\titlebox}{9\baselineskip}
+\usepackage{times}
+\usepackage{latexsym}
 \usepackage[T1]{fontenc}
-\usepackage[spanish,es-nodecimaldot]{babel}
-\usepackage{lmodern}
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
 \usepackage{microtype}
-\usepackage{hyperref}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage{etoolbox}
+\usepackage{enumitem}
+\captionsetup[figure]{font=small}
 
-\hypersetup{colorlinks=true, linkcolor=black, citecolor=blue!50!black, urlcolor=blue!50!black}
+\setlength{\textfloatsep}{16pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{16pt plus 2pt minus 2pt}
+\makeatletter
+\renewcommand{\paragraph}{\@startsection{paragraph}{4}{\z@}{2.0ex plus 0.7ex minus 0.3ex}{-1em}{\normalsize\bfseries}}
+\makeatother
+\makeatletter
+\patchcmd{\thebibliography}{References}{Referencias}{}{}
+\patchcmd{\thebibliography}{References}{Referencias}{}{}
+\patchcmd{\thebibliography}{References}{Referencias}{}{}
+\makeatother
 
-\title{Interpretación y Representación Semántica del Entorno\\
-\large Robótica Inteligente --- Práctica II (Opción 4)}
-\author{Grado en Ingeniería en Inteligencia Artificial\\Universidad de Alicante}
-\date{Curso 2026/2027}
+\title{Interpretación y Representación Semántica del Entorno}
+
+\author{
+  \textbf{Stefania Bianchi Morales, Sara Mora García,}\\
+  \textbf{Alejandro Operé Sirvent, Celia Ribes Flor}\\[0.3cm]
+  Universidad de Alicante\\
+  \texttt{\{sbm108, smg200, aos35, crf41\}@alu.ua.es}
+}
+
+\usepackage{fancyhdr}
+
+%===============================================================================
+%                            ENCABEZADO Y PIE
+%===============================================================================
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\fancyhead[LO]{\footnotesize \bfseries ROBÓTICA INTELIGENTE}
+\fancyhead[RO]{\footnotesize Diciembre de 2026}
+
+\fancyhead[LE]{\footnotesize Interpretación y Representación Semántica del Entorno / \scriptsize S. BIANCHI, S. MORA, A. OPERÉ, C. RIBES}
+
+\cfoot{\thepage}
+
+\renewcommand{\headrulewidth}{0pt}
+
+\fancypagestyle{firstpage}{
+\fancyhf{}
+\fancyhead[LO]{\footnotesize \bfseries ROBÓTICA INTELIGENTE}
+\fancyhead[R]{\footnotesize Diciembre de 2026}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+}
 
 \begin{document}
+
 \maketitle
+\thispagestyle{firstpage}
 
-%==========================================================
+\begin{abstract}
+\end{abstract}
+
 \section{Introducción}
-%==========================================================
-
 La robótica móvil de exteriores ha pasado de la navegación puramente geométrica, centrada en evitar colisiones, a la comprensión del contexto en el que opera el robot. Un mapa métrico indica \emph{dónde} hay estructura, pero no \emph{qué} es: un edificio, un árbol o un vehículo aparcado se representan igual en una nube de puntos. Esta carencia limita la planificación de alto nivel, la interacción con clases concretas del entorno y la reutilización del mapa por otros módulos del sistema.
 
 Este proyecto aborda el problema combinando dos tecnologías complementarias. La primera es la odometría LiDAR-inercial (LIO), que aporta una trayectoria precisa y una reconstrucción 3D consistente. La segunda es la visión por computador basada en modelos fundacionales, que aporta información semántica densa sin entrenar redes desde cero. Como base geométrica se emplea RKO-LIO, un sistema que no requiere modelado específico del sensor y funciona en distintas plataformas y entornos sin cambiar la configuración~\cite{malladi2026rkolio}. Como fuente de datos se usa el Oxford Spires Dataset (OSD), que cubre seis edificios históricos de Oxford con 24 secuencias e incluye tres cámaras RGB de obturador global, un LiDAR de 64 haces e inercial, junto con modelos 3D de referencia de precisión milimétrica obtenidos con un escáner láser terrestre~\cite{tao2024spires}.
-
-El objetivo es construir un mapa 3D etiquetado del entorno urbano. Para ello se segmentan las imágenes con modelos fundacionales y se proyectan las etiquetas sobre la nube de puntos generada por la odometría. El trabajo se enmarca en la Opción~4 de la Práctica~II de Robótica Inteligente~\cite{munoz2026guion} y reutiliza el entorno ROS~2 y la secuencia de datos de la Práctica~I.
-
-La elección de esta opción se justifica por tres razones:
-\begin{enumerate}
-  \item Es un problema abierto de relevancia actual, como muestra la actividad reciente en mapas semánticos y representaciones 3D para robótica~\cite{firoozi2023foundation,deng2025best3d}.
-  \item Reutiliza de forma natural la infraestructura ya dominada (ROS~2, LIO, OSD).
-  \item Permite una evaluación cuantitativa y cualitativa, porque el conjunto de datos incluye referencia geométrica de alta precisión.
+ 
+El objetivo principal es construir un mapa 3D etiquetado del entorno urbano. Para ello, se segmentan las imágenes con modelos fundacionales y se proyectan las etiquetas resultantes sobre la nube de puntos generada por la odometría. 
+ 
+El desarrollo de esta arquitectura se fundamenta en tres motivos principales:
+\begin{enumerate}[noitemsep]
+  \item Aborda un problema abierto de gran relevancia actual, respaldado por la intensa actividad investigadora en mapas semánticos y representaciones 3D para robótica~\cite{firoozi2023foundation,deng2025best3d}.
+  \item Se integra de manera robusta sobre estándares de facto en la industria y conjuntos de datos de última generación (ecosistema ROS~2, arquitecturas LIO, OSD).
+  \item Permite una evaluación rigurosa tanto cuantitativa como cualitativa, dado que el conjunto de datos proporciona referencias geométricas (ground truth) de muy alta precisión.
 \end{enumerate}
 
 %==========================================================
 \section{Estado del Arte}
 %==========================================================
-
+ 
 \subsection{Odometría LiDAR-inercial y conjuntos de datos de referencia}
-
+ 
 Los sistemas LIO fusionan nubes de puntos e IMU, bien mediante filtros, bien mediante grafos de factores. RKO-LIO incorpora un esquema de regularización adaptativa en el registro ICP y se publica en \emph{IEEE Robotics and Automation Letters}~\cite{malladi2026rkolio}. Sobre este tipo de trayectorias se construyen los mapas semánticos, de modo que su calidad condiciona directamente el etiquetado final.
-
+ 
 Para evaluar estos métodos, el OSD se plantea como banco de pruebas de localización, reconstrucción y síntesis de nuevas vistas en exteriores a gran escala. Según sus autores, no existía hasta entonces un conjunto con imágenes en color, LiDAR y trayectoria y reconstrucción de referencia precisas~\cite{tao2024spires}. Esto lo hace adecuado para mapeo semántico, aunque el dataset \emph{no incluye anotaciones semánticas}. La evaluación semántica deberá apoyarse, por tanto, en etiquetado manual parcial o en métricas indirectas.
-
+ 
 \subsection{Mapas semánticos 3D: de lo geométrico a lo etiquetado}
-
-Los primeros mapas semánticos 3D dependían de la cámara tanto para reconstruir como para etiquetar. Jeong et~al. señalan que estos enfoques sufrían limitaciones y no trataban los rastros de vehículos en movimiento, y proponen combinar LiDAR y cámara para escalas grandes~\cite{jeong2018meaningful}. Su sistema integra el mapa 3D con la información semántica mediante transformación de coordenadas y actualización bayesiana, y añade un refinamiento para corregir voxeles mal segmentados y eliminar las huellas de vehículos móviles. Este es el esquema que se seguirá: segmentación 2D, proyección, fusión probabilística por voxel y refinamiento.
-
+ 
+Los primeros mapas semánticos 3D dependían de la cámara tanto para reconstruir como para etiquetar. Jeong et~al. señalan que estos enfoques sufrían limitaciones y no trataban los rastros de vehículos en movimiento, y proponen combinar LiDAR y cámara para escalas grandes~\cite{jeong2018towards}. Su sistema integra el mapa 3D con la información semántica mediante transformación de coordenadas y actualización bayesiana, y añade un refinamiento para corregir voxeles mal segmentados y eliminar las huellas de vehículos móviles. Este trabajo adopta dicho esquema: segmentación 2D, proyección, fusión probabilística por voxel y refinamiento.
+ 
 Para representar el mapa, OctoMap sigue siendo la referencia volumétrica. Se basa en octrees con estimación probabilística de ocupación y representa explícitamente el espacio ocupado, libre y desconocido~\cite{hornung2013octomap}. OctoMap modela ocupación, no semántica, por lo que el etiquetado se añade como extensión mediante la actualización bayesiana por voxel descrita arriba. En paralelo, Kimera integra SLAM visual-inercial, optimización de grafo de poses y una malla 3D anotada semánticamente a partir de segmentación 2D píxel a píxel~\cite{rosinol2020kimera}.
-
+ 
 \subsection{Segmentación directa 3D frente a proyección desde imagen}
-
-Existen dos estrategias para etiquetar nubes de puntos. La primera segmenta la nube directamente con redes 3D. Zou et~al. adaptan ARandLA-Net a un conjunto urbano de unos 390 millones de puntos de escaneo láser móvil, con un mIoU del 54,4\,\% y una mejora aproximada del 4\,\% al incorporar color~\cite{zou2021urban}. Esta vía depende de datos anotados en 3D, escasos y costosos.
-
+ 
+Existen dos estrategias para etiquetar nubes de puntos. La primera segmenta la nube directamente con redes 3D. Zou et~al. adaptan ARandLA-Net a un conjunto urbano de unos 390 millones de puntos de escaneo láser móvil, con un mIoU del 54,4\,\% y una mejora aproximada del 4\,\% al incorporar color~\cite{zou2021towards}. Esta vía depende de datos anotados en 3D, escasos y costosos.
+ 
 La segunda estrategia proyecta los puntos sobre imágenes ya segmentadas. Ochs et~al. comparan ambas y observan que proyectar el LiDAR sobre la segmentación de la cámara mejora la localización sin necesidad de segmentar directamente la nube~\cite{ochs2025boosting}. Es la vía más adecuada para este proyecto, pues aprovecha la madurez de la segmentación 2D y no exige anotaciones 3D.
-
+ 
 \subsection{Modelos fundacionales de visión}
-
+ 
 YOLO plantea la detección como una regresión directa de cajas delimitadoras y probabilidades de clase en una única evaluación de red, a 45 fps en su versión base~\cite{redmon2016yolo}. Es adecuado para objetos discretos (vehículos, señales) y para ejecución en tiempo real, pero sus cajas son poco precisas para estructuras extensas.
-
+ 
 Segment Anything (SAM) introduce una tarea de segmentación \emph{promptable}, un modelo con transferencia \emph{zero-shot} y el conjunto SA-1B, con más de mil millones de máscaras sobre 11 millones de imágenes~\cite{kirillov2023sam}. Sus máscaras son de calidad, pero \emph{no llevan etiqueta de clase}, por lo que suele combinarse con un detector o un modelo de lenguaje-visión que asigne la clase. SAM~3, publicado en noviembre de 2025, aborda esa limitación: introduce la segmentación promptable por conceptos, que encuentra todas las instancias de un concepto dado por una frase o un ejemplo, y unifica detección, segmentación y seguimiento~\cite{carion2025sam3}. Esto permite solicitar directamente <<edificio>>, <<vegetación>> o <<vehículo>> sin entrenamiento adicional.
-
+ 
 \subsection{Hacia representaciones abiertas y estructuradas}
-
+ 
 La tendencia actual va de mapas con etiquetas cerradas a representaciones de vocabulario abierto. ConceptGraphs señala que los métodos de mapeo semántico denso previos son de vocabulario cerrado y quedan limitados a las categorías de sus datos de entrenamiento, y propone grafos de escena 3D construidos fusionando la salida de modelos 2D mediante asociación multivista~\cite{gu2024conceptgraphs}. Las revisiones recientes coinciden en que las representaciones basadas en modelos fundacionales son prometedoras para la comprensión 3D y la inteligencia embebida~\cite{firoozi2023foundation,deng2025best3d}. Estos trabajos parten sobre todo de RGB-D en interiores, por lo que trasladarlos a LiDAR en exteriores sigue siendo un problema abierto.
-
+ 
 \subsection{Retos abiertos y posicionamiento}
-
+ 
 La literatura deja cuatro retos que este proyecto abordará en su versión acotada:
 \begin{enumerate}
-  \item \textbf{Calibración y sincronización} LiDAR-cámara, y distorsión de las lentes de tipo ojo de pez del OSD.
+  \item \textbf{Calibración y sincronización} entre LiDAR y cámara, y distorsión de las lentes de tipo ojo de pez del OSD.
   \item \textbf{Oclusiones y consistencia multivista}, resueltas mediante fusión bayesiana por voxel.
-  \item \textbf{Objetos dinámicos}, que dejan rastros en el mapa y requieren filtrado~\cite{jeong2018meaningful}.
-  \item \textbf{Evaluación sin anotación semántica 3D}, que obliga a definir un protocolo propio.
+  \item \textbf{Objetos dinámicos}, que dejan rastros en el mapa y requieren filtrado~\cite{jeong2018towards}.
+  \item \textbf{Evaluación sin anotación semántica 3D}, que obliga a definir un protocolo propio basado en inspección cualitativa y etiquetado manual de un subconjunto de control.
 \end{enumerate}
-
+ 
 Este trabajo propone un \emph{pipeline} modular en ROS~2 que combina RKO-LIO, segmentación con modelos fundacionales (YOLO/SAM) y proyección con fusión probabilística sobre un mapa voxelizado, evaluado sobre el OSD.
 
-%==========================================================
-\begin{thebibliography}{99}
-%==========================================================
 
-\bibitem{munoz2026guion}
-M.~A. Muñoz-Bañón and O.~M. Mozos.
-\newblock \emph{Robótica Inteligente: Práctica II. Proyecto Abierto de Desarrollo}.
-\newblock Universidad de Alicante, 2026.
+\section{Arquitectura del Sistema}
 
-\bibitem{tao2024spires}
-Y.~Tao, M.~Á. Muñoz-Bañón, L.~Zhang, J.~Wang, L.~F.~T. Fu, and M.~Fallon.
-\newblock The Oxford Spires Dataset: Benchmarking large-scale LiDAR-visual localisation, reconstruction and radiance field methods.
-\newblock arXiv:2411.10546, 2024.
 
-\bibitem{malladi2026rkolio}
-M.~V.~R. Malladi, T.~Guadagnino, L.~Lobefaro, and C.~Stachniss.
-\newblock A robust approach for LiDAR-inertial odometry without sensor-specific modelling.
-\newblock \emph{IEEE Robotics and Automation Letters}, 11(6):7420--7427, 2026.
 
-\bibitem{jeong2018meaningful}
-J.~Jeong, T.~S. Yoon, and J.~B. Park.
-\newblock Towards a meaningful 3D map using a 3D lidar and a camera.
-\newblock \emph{Sensors}, 18(8):2571, 2018.
-\newblock \href{https://doi.org/10.3390/s18082571}{doi:10.3390/s18082571}.
+\section{Metodología e Implementación}
 
-\bibitem{zou2021urban}
-Y.~Zou, H.~Weinacker, and B.~Koch.
-\newblock Towards urban scene semantic segmentation with deep learning from LiDAR point clouds: A case study in Baden-Württemberg, Germany.
-\newblock \emph{Remote Sensing}, 13(16):3220, 2021.
-\newblock \href{https://doi.org/10.3390/rs13163220}{doi:10.3390/rs13163220}.
 
-\bibitem{redmon2016yolo}
-J.~Redmon, S.~Divvala, R.~Girshick, and A.~Farhadi.
-\newblock You Only Look Once: Unified, real-time object detection.
-\newblock In \emph{Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR)}, pages 779--788, 2016.
 
-\bibitem{kirillov2023sam}
-A.~Kirillov \emph{et~al.}
-\newblock Segment Anything.
-\newblock In \emph{Proc. IEEE/CVF Int. Conf. Computer Vision (ICCV)}, pages 4015--4026, 2023.
+\section{Resultados y Discusión}
 
-\bibitem{carion2025sam3}
-N.~Carion \emph{et~al.}
-\newblock SAM 3: Segment Anything with Concepts.
-\newblock arXiv:2511.16719, 2025.
 
-\bibitem{hornung2013octomap}
-A.~Hornung, K.~M. Wurm, M.~Bennewitz, C.~Stachniss, and W.~Burgard.
-\newblock OctoMap: An efficient probabilistic 3D mapping framework based on octrees.
-\newblock \emph{Autonomous Robots}, 34(3):189--206, 2013.
-\newblock \href{https://doi.org/10.1007/s10514-012-9321-0}{doi:10.1007/s10514-012-9321-0}.
 
-\bibitem{rosinol2020kimera}
-A.~Rosinol, M.~Abate, Y.~Chang, and L.~Carlone.
-\newblock Kimera: An open-source library for real-time metric-semantic localization and mapping.
-\newblock In \emph{Proc. IEEE Int. Conf. Robotics and Automation (ICRA)}, 2020.
-\newblock \href{https://doi.org/10.1109/ICRA40945.2020.9196885}{doi:10.1109/ICRA40945.2020.9196885}.
 
-\bibitem{gu2024conceptgraphs}
-Q.~Gu \emph{et~al.}
-\newblock ConceptGraphs: Open-vocabulary 3D scene graphs for perception and planning.
-\newblock In \emph{Proc. IEEE Int. Conf. Robotics and Automation (ICRA)}, 2024.
-\newblock arXiv:2309.16650.
+\section{Conclusiones y Trabajo Futuro}
 
-\bibitem{firoozi2023foundation}
-R.~Firoozi \emph{et~al.}
-\newblock Foundation models in robotics: Applications, challenges, and the future.
-\newblock arXiv:2312.07843, 2023.
 
-\bibitem{deng2025best3d}
-T.~Deng \emph{et~al.}
-\newblock What is the best 3D scene representation for robotics? From geometric to foundation models.
-\newblock arXiv:2512.03422, 2025.
 
-\bibitem{ochs2025boosting}
-S.~Ochs \emph{et~al.}
-\newblock Boosting LiDAR-based localization with semantic insight: Camera projection versus direct LiDAR segmentation.
-\newblock arXiv:2509.20486, 2025.
-
-\end{thebibliography}
+\nocite{*}
+\bibliography{custom}
 
 \end{document}
